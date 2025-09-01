@@ -79,6 +79,7 @@ export default function Piano() {
 
   const clearRecording = () => {
     setRecordedNotes([]);
+    setAiNotes([]);
     activeNotesRef.current = {};
   };
 
@@ -107,31 +108,33 @@ export default function Piano() {
     );
     await model.initialize();
 
-    // Convert and quantize
+    // Convert recorded notes to NoteSequence
     let seq = toNoteSequence(recordedNotes);
+
+    // Quantize to 16th notes (4 = 1 quarter note resolution)
     const quantized = mm.sequences.quantizeNoteSequence(seq, 4);
 
-    // Ask model for continuation (32 steps = ~2 bars)
-    const continuation = await model.continueSequence(quantized, 32, 1.0);
+    // Ask model for continuation (32 steps = ~2 bars at 4/4)
+    const continuation = await model.continueSequence(quantized, 32, 1.1);
 
-    // Convert to Tone.js format
+    // Convert back to Tone.js notes (align to end of recorded performance)
+    const recordedDuration = recordedNotes.length
+      ? Math.max(...recordedNotes.map(n => n.time + n.duration))
+      : 0;
+
     const newNotes = continuation.notes.map(n => ({
       pitch: Tone.Frequency(n.pitch, "midi").toNote(),
-      time: n.startTime || 0,
+      time: recordedDuration + (n.startTime || 0),
       duration: (n.endTime - n.startTime) || 0.25,
     }));
 
     console.log("AI notes:", newNotes);
     setAiNotes(newNotes);
 
-    // Play AI notes right after the recording ends
-    const recordedDuration = recordedNotes.length
-      ? Math.max(...recordedNotes.map(n => n.time + n.duration))
-      : 0;
-
+    // Play AI continuation
     const now = Tone.now() + 0.5;
     newNotes.forEach(n => {
-      piano.triggerAttackRelease(n.pitch, n.duration, now + recordedDuration + n.time);
+      piano.triggerAttackRelease(n.pitch, n.duration, now + n.time);
     });
   };
 
@@ -142,6 +145,9 @@ export default function Piano() {
     const now = Tone.now() + 0.1;
     recordedNotes.forEach(n => {
       piano.triggerAttackRelease(n.pitch, Math.max(0.05, n.duration || 0.25), now + n.time);
+    });
+    aiNotes.forEach(n => {
+      piano.triggerAttackRelease(n.pitch, n.duration, now + n.time);
     });
   };
 
@@ -166,16 +172,24 @@ export default function Piano() {
   };
 
   /* ---------- UI ---------- */
-  const recordingDuration = isRecording
-    ? ((performance.now() - recordingStartRef.current) / 1000).toFixed(2)
-    : (recordedNotes.length
-      ? (Math.max(...recordedNotes.map(n => n.time + n.duration))).toFixed(2)
-      : "0.00");
+  /* ---------- UI ---------- */
+const recordingDuration = isRecording
+  ? ((performance.now() - recordingStartRef.current) / 1000).toFixed(2)
+  : (recordedNotes.length
+    ? (Math.max(...recordedNotes.map(n => n.time + n.duration))).toFixed(2)
+    : "0.00");
 
-  return (
-    <div className="p-4 flex flex-col items-center gap-4">
+return (
+  <div className="relative min-h-screen w-full overflow-hidden">
+    {/* Gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-[length:200%_200%] animate-gradient-x"></div>
+    {/* Dark overlay */}
+    <div className="absolute inset-0 bg-black/30"></div>
+
+    {/* Main Piano UI */}
+    <div className="relative z-10 p-4 flex flex-col items-center gap-4">
       {/* Controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap justify-center">
         {!isRecording ? (
           <button
             className="px-3 py-1 rounded bg-red-600 text-white font-semibold"
@@ -220,7 +234,7 @@ export default function Piano() {
           ✨ Continue with AI
         </button>
 
-        <div className="ml-4 text-sm text-gray-700">
+        <div className="ml-4 text-sm text-gray-200">
           Duration: <span className="font-mono">{recordingDuration}s</span>
         </div>
       </div>
@@ -300,9 +314,10 @@ export default function Piano() {
       </div>
 
       {/* Info */}
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-gray-200">
         Recorded notes: <span className="font-mono">{recordedNotes.length}</span>
       </div>
     </div>
+  </div>
   );
 }
