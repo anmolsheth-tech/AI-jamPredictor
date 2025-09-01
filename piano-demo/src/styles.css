@@ -1,0 +1,102 @@
+/* src/styles.css */
+:root {
+  --white-width: 44px;
+  --white-height: 220px;
+  --black-width: 28px;
+  --black-height: 130px;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial;
+  margin: 0;
+  background: #0f1724;
+  color: #e6eef8;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  padding: 20px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 6px 0 4px 0;
+  font-size: 20px;
+}
+
+.controls button {
+  margin: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #1f6feb;
+  color: white;
+  cursor: pointer;
+}
+
+.keyboard {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin: 20px auto;
+  width: calc(
+    var(--white-width) * 21
+  ); /* adjust based on number of white keys visible */
+  position: relative;
+  user-select: none;
+}
+
+/* white keys */
+.key.white {
+  width: var(--white-width);
+  height: var(--white-height);
+  background: linear-gradient(#fff, #e6e6e6);
+  border: 1px solid #999;
+  box-sizing: border-box;
+  position: relative;
+  margin-right: -1px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.key.white.active {
+  background: linear-gradient(#ffd, #ffc);
+  transform: translateY(2px);
+}
+
+/* black keys */
+.key.black {
+  width: var(--black-width);
+  height: var(--black-height);
+  background: linear-gradient(#111, #000);
+  border-radius: 0 0 4px 4px;
+  margin-left: calc(var(--white-width) - var(--black-width) / 2 * 2);
+  margin-right: calc(var(--white-width) - var(--black-width) / 2 * 2 * -1);
+  z-index: 2;
+  position: relative;
+  transform: translateY(-70px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.7);
+}
+
+.key.black.active {
+  background: linear-gradient(#7c3aed, #5b21b6);
+  transform: translateY(-68px);
+}
+
+.key .label {
+  font-size: 10px;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.key.black .label {
+  color: #ddd;
+}
+.legend {
+  margin-top: 12px;
+  color: #99b3cf;
+}
