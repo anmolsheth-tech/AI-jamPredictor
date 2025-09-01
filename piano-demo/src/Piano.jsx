@@ -124,7 +124,7 @@ export default function Piano() {
 
     const newNotes = continuation.notes.map(n => ({
       pitch: Tone.Frequency(n.pitch, "midi").toNote(),
-      time: recordedDuration + (n.startTime || 0),
+      time: n.startTime || 0,
       duration: (n.endTime - n.startTime) || 0.25,
     }));
 
