@@ -294,6 +294,11 @@ class TensorFlowMusicNeuralNetwork {
     labels.dispose();
 
     console.log('Training completed!');
+
+    // Automatically save the trained model
+    await this.saveModel('piano-neural-network');
+    console.log('Model saved to browser storage!');
+
     return history;
   }
 
@@ -439,10 +444,22 @@ class TensorFlowMusicNeuralNetwork {
     try {
       this.model = await tf.loadLayersModel(`localstorage://${name}`);
       this.isTrained = true;
-      console.log(`Model ${name} loaded successfully`);
+      this.modelInitialized = true;
+      console.log(`✅ Model ${name} loaded successfully from browser storage!`);
       return true;
     } catch (error) {
-      console.log('No saved model found, using new model');
+      console.log(`❌ No saved model found, will create new model`);
+      return false;
+    }
+  }
+
+  // Check if saved model exists
+  async hasSavedModel(name = 'piano-neural-network') {
+    try {
+      // Try to load model metadata without loading the full model
+      const modelExists = localStorage.getItem(`tensorflowjs_models/localstorage://${name}/info`);
+      return modelExists !== null;
+    } catch (error) {
       return false;
     }
   }

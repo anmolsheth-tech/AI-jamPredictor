@@ -13,13 +13,31 @@ export function NeuralNetworkProvider({ children }) {
   useEffect(() => {
     const initializeNeuralNetwork = async () => {
       try {
-        console.log('Initializing neural network...');
+        console.log('🔍 Checking for saved neural network...');
         const nn = new TensorFlowMusicNeuralNetwork(88, 256, 88);
+
+        // First, try to load a saved model
+        const hasSavedModel = await nn.hasSavedModel('piano-neural-network');
+
+        if (hasSavedModel) {
+          console.log('📂 Found saved model, loading...');
+          const loaded = await nn.loadModel('piano-neural-network');
+          if (loaded) {
+            setNeuralNetwork(nn);
+            console.log('✅ Pre-trained neural network loaded successfully!');
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // No saved model, create and initialize new one
+        console.log('🆕 No saved model found, creating new neural network...');
         await nn.initializeModel();
-        console.log('Neural network initialized successfully');
+        console.log('✅ New neural network initialized successfully');
         setNeuralNetwork(nn);
+
       } catch (error) {
-        console.error('Failed to initialize neural network:', error);
+        console.error('❌ Failed to initialize neural network:', error);
       } finally {
         setIsLoading(false);
       }

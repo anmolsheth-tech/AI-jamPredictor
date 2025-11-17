@@ -258,7 +258,7 @@ export default function PianoModern() {
       // Train with optimized parameters for better convergence
       await trainModel(allSongs, 30, 16); // Fewer epochs, smaller batch size for better generalization
 
-      alert('TensorFlow neural network training completed! You can now generate music.');
+      alert('🎉 Training completed! Model saved automatically and ready to use.');
     } catch (error) {
       console.error('Training error:', error);
       alert('Error during training. Check console for details.');
@@ -546,7 +546,9 @@ export default function PianoModern() {
                 ) : (
                   <>
                     <Zap className="w-5 h-5" />
-                    <span className="font-medium">Train AI</span>
+                    <span className="font-medium">
+                      {neuralNetwork?.isTrained ? '🔄 Retrain AI' : '⚡ Train AI'}
+                    </span>
                   </>
                 )}
               </motion.button>
@@ -574,9 +576,20 @@ export default function PianoModern() {
 
           {/* AI Status */}
           <div className="mt-6 p-3 bg-gray-900/50 rounded-lg border border-gray-700">
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${neuralNetwork?.isTrained ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`}></div>
-              <span className="text-xs text-gray-300">AI: {neuralNetwork?.isTrained ? 'Ready' : 'Not Trained'}</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${neuralNetwork?.isTrained ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`}></div>
+                <span className="text-xs text-gray-300">
+                  AI: {neuralNetwork?.isTrained ? '✅ Ready' : '⏳ Not Trained'}
+                </span>
+              </div>
+
+              {neuralNetwork?.isTrained && (
+                <div className="text-xs text-gray-400 flex items-center gap-1">
+                  <span className="text-green-400">💾</span>
+                  <span>Model loaded from browser storage</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
