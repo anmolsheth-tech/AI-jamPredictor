@@ -11,7 +11,7 @@ import {
 } from "./songs.js";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Music, Play, Square, Trash2, Download, Brain, Zap, Piano as PianoIcon, Volume2, Mic, MicOff, Settings } from "lucide-react";
+import { Music, Play, Square, Trash2, Download, Brain, Zap, Piano as PianoIcon, Volume2, Mic, MicOff, Settings, RefreshCw } from "lucide-react";
 import * as Tone from "tone";
 import { Link } from "react-router-dom";
 import { useNeuralNetwork } from "./contexts/NeuralNetworkContext.jsx";
@@ -133,7 +133,7 @@ export default function PianoModern() {
   const [expandedSong, setExpandedSong] = useState(null);
 
   // Use neural network context
-  const { neuralNetwork, isTraining, trainingProgress, isLoading, trainModel, generateMusic } = useNeuralNetwork();
+  const { neuralNetwork, isTraining, trainingProgress, isLoading, trainModel, generateMusic, recheckSavedModel } = useNeuralNetwork();
 
   // Song library dropdown state
   const [showSongDropdown, setShowSongDropdown] = useState(false);
@@ -570,6 +570,26 @@ export default function PianoModern() {
                     transition={{ duration: 0.5 }}
                   />
                 </div>
+              </div>
+            )}
+
+            {/* Manual Model Reload (for debugging) */}
+            {!isTraining && !neuralNetwork?.isTrained && (
+              <div className="mt-4">
+                <button
+                  onClick={async () => {
+                    const reloaded = await recheckSavedModel();
+                    if (reloaded) {
+                      alert('✅ Model loaded successfully!');
+                    } else {
+                      alert('❌ No saved model found. Please train the AI first.');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>🔄 Reload Saved Model</span>
+                </button>
               </div>
             )}
           </div>

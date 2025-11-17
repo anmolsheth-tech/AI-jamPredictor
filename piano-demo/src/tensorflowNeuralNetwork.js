@@ -442,13 +442,17 @@ class TensorFlowMusicNeuralNetwork {
   // Load model from local storage
   async loadModel(name = 'piano-neural-network') {
     try {
+      // Load the full model architecture and weights
       this.model = await tf.loadLayersModel(`localstorage://${name}`);
       this.isTrained = true;
       this.modelInitialized = true;
       console.log(`✅ Model ${name} loaded successfully from browser storage!`);
+      console.log(`🧠 Model architecture: ${this.model.layers.length} layers`);
+      console.log(`📊 Model is trained and ready for prediction`);
       return true;
     } catch (error) {
       console.log(`❌ No saved model found, will create new model`);
+      console.log(`   Error: ${error.message}`);
       return false;
     }
   }
@@ -456,10 +460,40 @@ class TensorFlowMusicNeuralNetwork {
   // Check if saved model exists
   async hasSavedModel(name = 'piano-neural-network') {
     try {
-      // Try to load model metadata without loading the full model
-      const modelExists = localStorage.getItem(`tensorflowjs_models/localstorage://${name}/info`);
-      return modelExists !== null;
+      // More comprehensive check for TensorFlow.js model storage patterns
+      const baseKeys = [
+        `tensorflowjs_models/localstorage://${name}/info`,
+        `tensorflowjs_models/localstorage://${name}/model_topology`,
+        `tensorflowjs_models/localstorage://${name}/weight_data`
+      ];
+
+      // Check for any model-related keys
+      const modelKeys = Object.keys(localStorage).filter(key =>
+        key.includes(name) && key.includes('tensorflowjs_models')
+      );
+
+      console.log(`🔍 Checking localStorage keys for model ${name}:`, modelKeys);
+
+      // Try to directly load the model as the most reliable check
+      try {
+        const testModel = await tf.loadLayersModel(`localstorage://${name}`);
+        testModel.dispose(); // Clean up test model
+        console.log(`✅ Model ${name} is accessible and loadable`);
+        return true;
+      } catch (loadError) {
+        console.log(`❌ Model ${name} test load failed:`, loadError.message);
+
+        // Fallback to key-based checking
+        const hasRequiredKeys = baseKeys.some(key => localStorage.getItem(key) !== null);
+        if (hasRequiredKeys) {
+          console.log(`⚠️ Found model keys but couldn't load model`);
+        } else {
+          console.log(`📂 No saved model found for ${name}`);
+        }
+        return false;
+      }
     } catch (error) {
+      console.log(`❌ Error checking for saved model: ${error.message}`);
       return false;
     }
   }
